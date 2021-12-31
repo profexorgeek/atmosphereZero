@@ -2,6 +2,13 @@
 <html>
     <head>
         <title>Atmosphere Zero</title>
+        <style>
+            body {
+                font-family: Arial, Helvetica, sans-serif;
+                font-size: 11pt;
+                color: #444;
+            }
+        </style>
     </head>
     <body>
         <canvas id='game' width="800px" height="600px"></canvas>
@@ -11,5 +18,17 @@
             // start the compiled game using requirejs and the entry module path
             requirejs(["atmosphereZero/src/start"]);
         </script>
+        <p>
+            This is a WIP game to test the FrostFlake engine. It is buggy and incomplete but
+            is hosted here as a demonstration!
+        </p>
+        <p>
+            Controls:
+            <ol>
+                <li>Click or click and drag to select ships</li>
+                <li>Right click to move ships</li>
+                <li>Middle click and drag to pan camera</li>
+            </ol>
+        </p>
     </body>
 </html>

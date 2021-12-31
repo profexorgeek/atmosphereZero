@@ -1,0 +1,31 @@
+{
+  "name": "atmosphereZero",
+  "version": "1.0.0",
+  "description": "This game was made to test the frostflake game engine.",
+  "main": "index.html",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "npm run build",
+    "start": "http-server -c-1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/profexorgeek/atmosphereZero.git"
+  },
+  "keywords": [],
+  "author": "profexorgeek",
+  "license": "MIT",
+  "readmeFilename": "readme.md",
+  "bugs": {
+    "url": "https://github.com/profexorgeek/atmosphereZero/issues"
+  },
+  "homepage": "https://github.com/profexorgeek/atmosphereZero/blob/main/readme.md",
+  "devDependencies": {
+    "http-server": "^14.0.0",
+    "ts-loader": "^9.2.6",
+    "typescript": "^4.5.4"
+  },
+  "dependencies": {
+    "frostflake": "file:../frostflake"
+  }
+}

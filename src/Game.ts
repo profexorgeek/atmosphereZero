@@ -7,6 +7,8 @@ import Sector from "./Views/Sector";
 
 export default class Game extends FrostFlake {
 
+    public static readonly SPRITESHEET: string = "content/spritesheet.png";
+
     constructor() {
         super(document.getElementById('game'), 60, "rgb(48, 44, 46)");
         this.camera.resolution = 1;

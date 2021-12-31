@@ -2,12 +2,14 @@ import Circle from 'frostflake/src/Positionables/Circle';
 import Cursor from 'frostflake/src/Input/Cursor';
 import Frame from 'frostflake/src/Drawing/Frame';
 import FrostFlake from 'frostflake/src/FrostFlake';
+import Game from '../Game';
 import Input from 'frostflake/src/Input/Input';
 import MathUtil from 'frostflake/src/Utility/MathUtil';
 import Mouse from 'frostflake/src/Input/Mouse';
 import Position from 'frostflake/src/Positionables/Position';
 import Sector from '../Views/Sector';
 import Sprite from 'frostflake/src/Positionables/Sprite';
+
 
 export default class Ship extends Sprite {
 
@@ -30,7 +32,7 @@ export default class Ship extends Sprite {
     }
 
     constructor() {
-        super('/content/spritesheet.png');
+        super(Game.SPRITESHEET);
 
         this.frame = this.SHIP_FRAME;
 

@@ -1,7 +1,8 @@
 import Circle from 'frostflake/src/Positionables/Circle';
-import Sprite from 'frostflake/src/Positionables/Sprite';
 import Frame from 'frostflake/src/Drawing/Frame';
 import MathUtil from 'frostflake/src/Utility/MathUtil';
+import Game from '../Game';
+import Sprite from 'frostflake/src/Positionables/Sprite';
 
 export default class Star extends Sprite {
 
@@ -17,7 +18,7 @@ export default class Star extends Sprite {
                                                 ];
 
     constructor() {
-        super('/content/spritesheet.png');
+        super(Game.SPRITESHEET);
 
         let frameIndex = MathUtil.randomIntInRange(0, this.starFrames.length);
         let scale = MathUtil.randomInRange(this.minScale, this.maxScale);

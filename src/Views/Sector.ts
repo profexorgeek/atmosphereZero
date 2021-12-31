@@ -1,6 +1,7 @@
 import Camera from 'frostflake/src/Positionables/Camera';
 import Data from 'frostflake/src/Data/Data';
 import FrostFlake from 'frostflake/src/FrostFlake';
+import Game from '../Game';
 import Input from 'frostflake/src/Input/Input';
 import Mouse from 'frostflake/src/Input/Mouse';
 import Rectangle from 'frostflake/src/Positionables/Rectangle';
@@ -8,7 +9,6 @@ import RepositionType from 'frostflake/src/Positionables/RepositionType';
 import Ship from '../Entities/Ship';
 import Star from '../Entities/Star';
 import View from 'frostflake/src/Views/View';
-
 
 export default class Sector extends View {
 
@@ -26,7 +26,7 @@ export default class Sector extends View {
     async initialize(): Promise<void> {
         await super.update();
 
-        await Data.loadImage('/content/spritesheet.png');
+        await Data.loadImage(Game.SPRITESHEET);
 
         // add drag to camera so it slows down over time
         FrostFlake.Game.camera.drag = this.cameraDrag;

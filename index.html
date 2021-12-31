@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Atmosphere Zero</title>
+    </head>
+    <body>
+        <canvas id='game' width="800px" height="600px"></canvas>
+        <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
+        <script src='game.js'></script>
+        <script>
+            // start the compiled game using requirejs and the entry module path
+            requirejs(["atmosphereZero/src/start"]);
+        </script>
+    </body>
+</html>

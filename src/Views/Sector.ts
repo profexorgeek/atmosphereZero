@@ -9,14 +9,19 @@ import RepositionType from 'frostflake/src/Positionables/RepositionType';
 import Ship from '../Entities/Ship';
 import Star from '../Entities/Star';
 import View from 'frostflake/src/Views/View';
+import Cloud from '../Entities/Cloud';
+import MathUtil from '../../node_modules/frostflake/src/Utility/MathUtil';
 
 export default class Sector extends View {
 
-    public static readonly selectionColor: string   = "rgba(182,213,60,0.75)";
-    private readonly numberOfStars: number          = 100;
-    private readonly numberOfShips: number          = 5;
-    private readonly cameraDrag: number             = 3;
-    private readonly cameraMoveFactor: number       = 100;
+    public static readonly SELECTION_COLOR: string   = "rgba(182,213,60,0.75)";
+    private readonly NUM_STARS: number               = 100;
+    private readonly NUM_CLOUDS:number               = 3;
+    private readonly NUM_SHIPS: number               = 5;
+    private readonly CAM_DRAG: number                = 3;
+    private readonly CAM_MOVE: number                = 100;
+    private readonly WORLD_SIZE: number              = 1000;
+    private readonly LAYER_STARS: number             = -50;
 
     private _ships: Array<Ship>                     = [];
     private _selecting: boolean                     = false;
@@ -29,9 +34,10 @@ export default class Sector extends View {
         await Data.loadImage(Game.SPRITESHEET);
 
         // add drag to camera so it slows down over time
-        FrostFlake.Game.camera.drag = this.cameraDrag;
+        FrostFlake.Game.camera.drag = this.CAM_DRAG;
 
         this.createStars();
+        this.createClouds();
         this.createShips();
         this.createSelectionBox();
     }
@@ -48,7 +54,7 @@ export default class Sector extends View {
 
 
     createShips(): void {
-        for(let i = 0; i < this.numberOfShips; i++) {
+        for(let i = 0; i < this.NUM_SHIPS; i++) {
             let ship = new Ship();
             ship.position = FrostFlake.Game.camera.randomPositionInView;
             this._ships.push(ship);
@@ -57,16 +63,26 @@ export default class Sector extends View {
     }
 
     createStars(): void {
-        for(let i = 0; i < this.numberOfStars; i++) {
+        for(let i = 0; i < this.NUM_STARS; i++) {
             let star = new Star();
             star.position = FrostFlake.Game.camera.randomPositionInView;
+            star.layer = this.LAYER_STARS;
             this.addChild(star);
+        }
+    }
+
+    createClouds(): void {
+        for(let i = 0; i < this.NUM_CLOUDS; i++) {
+            let cloud = new Cloud();
+            cloud.x = MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE);
+            cloud.y = MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE);
+            this.addChild(cloud);
         }
     }
 
     createSelectionBox():void {
         this._selectionBox = new Rectangle(0,0);
-        this._selectionBox.color = Sector.selectionColor;
+        this._selectionBox.color = Sector.SELECTION_COLOR;
         this._selectionBox.visible = false;
         this.addChild(this._selectionBox);
     }
@@ -80,8 +96,8 @@ export default class Sector extends View {
 
         if(input.buttonDown(Mouse.Middle))
         {
-            cam.velocity.x = input.cursor.changeX * this.cameraMoveFactor;
-            cam.velocity.y = input.cursor.changeY * this.cameraMoveFactor;
+            cam.velocity.x = input.cursor.changeX * this.CAM_MOVE;
+            cam.velocity.y = input.cursor.changeY * this.CAM_MOVE;
         }
 
         if(input.buttonDown(Mouse.Left)) {

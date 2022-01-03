@@ -59,7 +59,7 @@ export default class Ship extends Sprite {
 
     private setUpSelectionIndicator(): void {
         this.selectionIndicator = new Circle(this.SHIP_FRAME.width);
-        this.selectionIndicator.color = Sector.selectionColor;
+        this.selectionIndicator.color = Sector.SELECTION_COLOR;
         this.addChild(this.selectionIndicator);
         this.selected = false;
     }

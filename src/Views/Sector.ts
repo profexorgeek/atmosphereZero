@@ -15,8 +15,8 @@ import MathUtil from '../../node_modules/frostflake/src/Utility/MathUtil';
 export default class Sector extends View {
 
     public static readonly SELECTION_COLOR: string   = "rgba(182,213,60,0.75)";
-    private readonly NUM_STARS: number               = 100;
-    private readonly NUM_CLOUDS:number               = 3;
+    private readonly NUM_STARS: number               = 500;
+    private readonly NUM_CLOUDS:number               = 5;
     private readonly NUM_SHIPS: number               = 5;
     private readonly CAM_DRAG: number                = 3;
     private readonly CAM_MOVE: number                = 100;
@@ -65,7 +65,8 @@ export default class Sector extends View {
     createStars(): void {
         for(let i = 0; i < this.NUM_STARS; i++) {
             let star = new Star();
-            star.position = FrostFlake.Game.camera.randomPositionInView;
+            star.x = MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE);
+            star.y = MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE);
             star.layer = this.LAYER_STARS;
             this.addChild(star);
         }

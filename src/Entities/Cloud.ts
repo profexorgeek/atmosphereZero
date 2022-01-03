@@ -5,13 +5,12 @@ import Sprite from "frostflake/src/Positionables/Sprite";
 
 export default class Cloud extends Sprite {
 
-    private readonly MIN_SCALE: number          = 7;
+    private readonly MIN_SCALE: number          = 10;
     private readonly MAX_SCALE: number          = 15;
-    private readonly MIN_ALPHA: number          = 0.3;
-    private readonly MAX_ALPHA: number          = 0.5;
+    private readonly MIN_ALPHA: number          = 0.1;
+    private readonly MAX_ALPHA: number          = 0.3;
     private readonly LAYER: number              = -500;
     private readonly ROTATION_SPEED: number     = 0.05;
-
     private readonly CLOUD_FRAMES: Array<Frame>   = [
         new Frame(480,0,160,160),
         new Frame(480,160,160,160)

@@ -3,27 +3,29 @@ import Data from 'frostflake/src/Data/Data';
 import FrostFlake from 'frostflake/src/FrostFlake';
 import Game from '../Game';
 import Input from 'frostflake/src/Input/Input';
+import MathUtil from 'frostflake/src/Utility/MathUtil';
 import Mouse from 'frostflake/src/Input/Mouse';
+import Position from 'frostflake/src/Positionables/Position';
 import Rectangle from 'frostflake/src/Positionables/Rectangle';
 import RepositionType from 'frostflake/src/Positionables/RepositionType';
+import Rock from '../Entities/Rock';
+import RockSize from '../Entities/RockSize';
 import Ship from '../Entities/Ship';
 import Star from '../Entities/Star';
 import View from 'frostflake/src/Views/View';
-import Cloud from '../Entities/Cloud';
-import MathUtil from '../../node_modules/frostflake/src/Utility/MathUtil';
 
 export default class Sector extends View {
 
     public static readonly SELECTION_COLOR: string   = "rgba(182,213,60,0.75)";
     private readonly NUM_STARS: number               = 500;
-    private readonly NUM_CLOUDS:number               = 5;
     private readonly NUM_SHIPS: number               = 5;
+    private readonly NUM_ROCKS: number               = 40;
     private readonly CAM_DRAG: number                = 3;
     private readonly CAM_MOVE: number                = 100;
     private readonly WORLD_SIZE: number              = 1000;
-    private readonly LAYER_STARS: number             = -50;
-
+    
     private _ships: Array<Ship>                     = [];
+    private _rocks: Array<Rock>                     = [];
     private _selecting: boolean                     = false;
     private _boxStart: any                          = {x: 0, y: 0};
     private _selectionBox: Rectangle;
@@ -37,8 +39,8 @@ export default class Sector extends View {
         FrostFlake.Game.camera.drag = this.CAM_DRAG;
 
         this.createStars();
-        this.createClouds();
         this.createShips();
+        this.createRocks();
         this.createSelectionBox();
     }
 
@@ -49,11 +51,26 @@ export default class Sector extends View {
     update(): void {
         super.update();
         this.doInput();
+        this.doCollisions();
     }
 
+    getTargetAtPoint(x: number, y: number) {
+        // TODO: test ships
 
+        // EARLY OUT: return the first rock whose collision contains
+        // the provided point
+        for(let i = this._rocks.length - 1; i >= 0; i--) {
+            let rock = this._rocks[i];
+            if(rock.collision.isPointInside(x,y))
+            {
+                return rock;
+            }
+        }
 
-    createShips(): void {
+        return null;
+    }
+
+    private createShips(): void {
         for(let i = 0; i < this.NUM_SHIPS; i++) {
             let ship = new Ship();
             ship.position = FrostFlake.Game.camera.randomPositionInView;
@@ -62,34 +79,40 @@ export default class Sector extends View {
         }
     }
 
-    createStars(): void {
+    private createStars(): void {
         for(let i = 0; i < this.NUM_STARS; i++) {
             let star = new Star();
-            star.x = MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE);
-            star.y = MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE);
-            star.layer = this.LAYER_STARS;
+            star.position = this.randomPositionInSector();
             this.addChild(star);
         }
     }
 
-    createClouds(): void {
-        for(let i = 0; i < this.NUM_CLOUDS; i++) {
-            let cloud = new Cloud();
-            cloud.x = MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE);
-            cloud.y = MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE);
-            this.addChild(cloud);
+    private createRocks(): void {
+        for(let i = 0; i < this.NUM_ROCKS; i++) {
+            let size = Math.random() > 0.5 ? RockSize.Small : RockSize.Medium;
+            let rock = new Rock(size);
+            rock.position = this.randomPositionInSector(true);
+            this._rocks.push(rock);
+            this.addChild(rock);
         }
     }
 
-    createSelectionBox():void {
+    private createSelectionBox():void {
         this._selectionBox = new Rectangle(0,0);
         this._selectionBox.color = Sector.SELECTION_COLOR;
         this._selectionBox.visible = false;
         this.addChild(this._selectionBox);
     }
 
+    private randomPositionInSector(includeRotation: boolean = false): Position {
+        return new Position(
+            MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE),
+            MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE),
+            MathUtil.randomInRange(0, Math.PI * 2)
+        );
+    }
 
-    doInput(): void {
+    private doInput(): void {
         let input: Input = FrostFlake.Game.input;
         let cam: Camera = FrostFlake.Game.camera;
 
@@ -99,6 +122,22 @@ export default class Sector extends View {
         {
             cam.velocity.x = input.cursor.changeX * this.CAM_MOVE;
             cam.velocity.y = input.cursor.changeY * this.CAM_MOVE;
+        }
+
+        if(input.buttonDown(Mouse.Right)) {
+            let target = this.getTargetAtPoint(input.cursor.worldX, input.cursor.worldY);
+
+            for(let i = this._ships.length - 1; i >= 0; i--) {
+                let ship = this._ships[i];
+                if(ship.selected) {
+                    if(target === null) {
+                        ship.moveTarget = new Position(input.cursor.worldX, input.cursor.worldY);
+                    }
+                    else {
+                        ship.attackTarget = target;
+                    }
+                }
+            }
         }
 
         if(input.buttonDown(Mouse.Left)) {
@@ -139,5 +178,16 @@ export default class Sector extends View {
         // the selection box visibility should match the current
         // selecting state
         this._selectionBox.visible = this._selecting;
+    }
+
+    private doCollisions(): void {
+        for(let i = this._ships.length - 1; i >= 0; i--) {
+            let ship1 = this._ships[i];
+            for(let j = i; j >= 0; j--) {
+                let ship2 = this._ships[j];
+
+                ship1.collision.collideWith(ship2.collision, RepositionType.Bounce, 0.5, 0.5, 0.5);
+            }
+        }
     }
 }

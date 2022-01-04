@@ -10,7 +10,7 @@ export default class Game extends FrostFlake {
     public static readonly SPRITESHEET: string = "content/spritesheet.png";
 
     constructor() {
-        super(document.getElementById('game'), 60, "rgb(113, 170, 52)");
+        super(document.getElementById('game'), 60, "rgb(48, 44, 46)");
         this.camera.resolution = 1;
         this.camera.antialias = true;
         this.camera.width = this.canvas.width * this.camera.resolution;

@@ -1,3 +1,4 @@
+import BehaviorState from './BehaviorState';
 import Circle from 'frostflake/src/Positionables/Circle';
 import Cursor from 'frostflake/src/Input/Cursor';
 import Frame from 'frostflake/src/Drawing/Frame';
@@ -5,11 +6,10 @@ import FrostFlake from 'frostflake/src/FrostFlake';
 import Game from '../Game';
 import Input from 'frostflake/src/Input/Input';
 import MathUtil from 'frostflake/src/Utility/MathUtil';
-import Mouse from 'frostflake/src/Input/Mouse';
 import Position from 'frostflake/src/Positionables/Position';
+import Positionable from 'frostflake/src/Positionables/Positionable';
 import Sector from '../Views/Sector';
 import Sprite from 'frostflake/src/Positionables/Sprite';
-
 
 export default class Ship extends Sprite {
 
@@ -20,8 +20,30 @@ export default class Ship extends Sprite {
 
     private selectionIndicator: Circle;
     private _moveTarget: Position               = null;
+    private _actionTarget: Positionable         = null;
     private _selected: boolean                  = false;
+    private _behavior: BehaviorState            = BehaviorState.Idle;
     
+
+    get target(): Positionable | Position {
+        if(this._actionTarget != null ){
+            return this._actionTarget;
+        }
+        return this._moveTarget;
+    }
+    set target(newTarget: Positionable | Position) {
+        // TODO: more granular type checking and state
+        // setting should happen when station and other
+        // interactable types are added
+        if(newTarget instanceof Positionable) {
+            this._actionTarget = newTarget;
+            this._behavior = BehaviorState.Attacking;
+        }
+        else {
+            this._moveTarget = newTarget;
+            this._behavior = BehaviorState.Flying;
+        }
+    }
 
     get selected(): boolean {
         return this._selected;
@@ -30,6 +52,8 @@ export default class Ship extends Sprite {
         this._selected = setting;
         this.selectionIndicator.visible = this._selected;
     }
+
+
 
     constructor() {
         super(Game.SPRITESHEET);
@@ -46,16 +70,10 @@ export default class Ship extends Sprite {
 
     update(): void {
         super.update();
-        let input: Input = FrostFlake.Game.input;
-        let cursor: Cursor = input.cursor;
-
-        if(this.selected && input.buttonPushed(Mouse.Right))
-        {
-            this._moveTarget = new Position(cursor.worldX, cursor.worldY)
-        }
 
         this.moveTowardTarget();
     }
+
 
     private setUpSelectionIndicator(): void {
         this.selectionIndicator = new Circle(this.SHIP_FRAME.width);

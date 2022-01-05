@@ -8,8 +8,9 @@ export default class Star extends Sprite {
 
     private readonly MIN_SCALE: number           = 0.5;
     private readonly MAX_SCALE: number           = 2;
-    private readonly MIN_ALPHA: number           = 0.25;
-    private readonly MAX_ALPHA: number           = 0.75;
+    private readonly MIN_ALPHA: number           = 0.15;
+    private readonly MAX_ALPHA: number           = 0.5;
+    private readonly MAX_PARALLAX: number        = 0.3;
     private readonly LAYER: number               = -50;
     private readonly STAR_FRAMES: Array<Frame>   = [
         new Frame(0,0,4,4),
@@ -28,6 +29,6 @@ export default class Star extends Sprite {
         this.scale = scale;
         this.layer = this.LAYER;
         (<Circle>this.collision).radius = 1;
-        this.parallax = 1 / scale;
+        this.parallax = MathUtil.randomInRange(0, this.MAX_PARALLAX);
     }
 }

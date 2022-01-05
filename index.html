@@ -11,7 +11,7 @@
         </style>
     </head>
     <body>
-        <canvas id='game' width="800px" height="600px"></canvas>
+        <canvas id='game' width="1024px" height="768px"></canvas>
         <script src="https://requirejs.org/docs/release/2.3.6/minified/require.js"></script>
         <script src='game.js'></script>
         <script>
@@ -19,14 +19,16 @@
             requirejs(["atmosphereZero/src/start"]);
         </script>
         <p>
-            This is a WIP game to test the FrostFlake engine. It is buggy and incomplete but
-            is hosted here as a demonstration!
+            This is a tiny, <a href="https://github.com/profexorgeek/atmosphereZero" title="AtmosphereZero on GitHub" target="_blank">open-source</a> 
+            game to test the <a href="https://github.com/profexorgeek/frostflake" title="FrostFlake on GitHub" target="_blank">FrostFlake game engine</a>.
+            It is buggy and incomplete but is hosted here as a demonstration!
         </p>
         <p>
             Controls:
             <ol>
                 <li>Click or click and drag to select ships</li>
                 <li>Right click to move ships</li>
+                <li>Right click on an asteroid to start mining</li>
                 <li>Middle click and drag to pan camera</li>
             </ol>
         </p>

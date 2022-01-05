@@ -16,8 +16,9 @@ export default class Game extends FrostFlake {
         this.camera.width = this.canvas.width * this.camera.resolution;
         this.camera.height = this.canvas.height * this.camera.resolution;
         this.view = new Sector();
+        this.showDebug = false;
 
-        FrostFlake.Log.level = LogLevel.Info;
+        FrostFlake.Log.level = LogLevel.Debug;
     }
 
     update(): void {

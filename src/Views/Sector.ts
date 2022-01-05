@@ -3,9 +3,11 @@ import Data from 'frostflake/src/Data/Data';
 import FrostFlake from 'frostflake/src/FrostFlake';
 import Game from '../Game';
 import Input from 'frostflake/src/Input/Input';
+import Laser from '../Entities/Laser';
 import MathUtil from 'frostflake/src/Utility/MathUtil';
 import Mouse from 'frostflake/src/Input/Mouse';
 import Position from 'frostflake/src/Positionables/Position';
+import Positionable from 'frostflake/src/Positionables/Positionable';
 import Rectangle from 'frostflake/src/Positionables/Rectangle';
 import RepositionType from 'frostflake/src/Positionables/RepositionType';
 import Rock from '../Entities/Rock';
@@ -17,18 +19,21 @@ import View from 'frostflake/src/Views/View';
 export default class Sector extends View {
 
     public static readonly SELECTION_COLOR: string   = "rgba(182,213,60,0.75)";
-    private readonly NUM_STARS: number               = 500;
+    private readonly NUM_STARS: number               = 600;
     private readonly NUM_SHIPS: number               = 5;
-    private readonly NUM_ROCKS: number               = 40;
-    private readonly CAM_DRAG: number                = 3;
-    private readonly CAM_MOVE: number                = 100;
-    private readonly WORLD_SIZE: number              = 1000;
+    private readonly NUM_ROCKS: number               = 100;
+    private readonly CAM_DRAG: number                = 5;
+    private readonly CAM_MOVE: number                = 10;
+    private readonly WORLD_SIZE: number              = 1200;
     
     private _ships: Array<Ship>                     = [];
     private _rocks: Array<Rock>                     = [];
+    private _shots: Array<Laser>                    = [];
     private _selecting: boolean                     = false;
+    private _camStartDrag: boolean                  = false;
     private _boxStart: any                          = {x: 0, y: 0};
     private _selectionBox: Rectangle;
+    private _worldBounds:Rectangle;
 
     async initialize(): Promise<void> {
         await super.update();
@@ -40,8 +45,8 @@ export default class Sector extends View {
 
         this.createStars();
         this.createShips();
-        this.createRocks();
         this.createSelectionBox();
+        this.createWorldBounds();
     }
 
     destroy(): void {
@@ -50,8 +55,15 @@ export default class Sector extends View {
 
     update(): void {
         super.update();
+
+        // clean up lists first
+        this.removeDestroyed(this._ships);
+        this.removeDestroyed(this._rocks);
+        this.removeDestroyed(this._shots);
+
         this.doInput();
         this.doCollisions();
+        this.doAddRocks();
     }
 
     getTargetAtPoint(x: number, y: number) {
@@ -68,6 +80,34 @@ export default class Sector extends View {
         }
 
         return null;
+    }
+
+    getNearestRock(position: Position): Rock {
+        let nearestDistance: number = Number.MAX_SAFE_INTEGER;
+        let nearestRock: Rock = null;
+        for(var i = this._rocks.length - 1; i >= 0; i--) {
+            let rock: Rock = this._rocks[i];
+            let newDist: number = rock.position.distanceTo(position)
+            if(newDist < nearestDistance) {
+                nearestDistance = newDist;
+                nearestRock = rock;
+            }
+        }
+        return nearestRock;
+    }
+
+    requestShot(requestingShip: Ship, direction: number) {
+        var shot = new Laser();
+        this._shots.push(shot);
+        this.addChild(shot);
+        shot.fire(requestingShip, direction);
+    }
+
+    requestRock(position: Position, size: RockSize = RockSize.Small, addVelocity:boolean = true) {
+        let rock = new Rock(size, addVelocity);
+        rock.position = position;
+        this.addChild(rock);
+        this._rocks.push(rock);
     }
 
     private createShips(): void {
@@ -87,14 +127,11 @@ export default class Sector extends View {
         }
     }
 
-    private createRocks(): void {
-        for(let i = 0; i < this.NUM_ROCKS; i++) {
-            let size = Math.random() > 0.5 ? RockSize.Small : RockSize.Medium;
-            let rock = new Rock(size);
-            rock.position = this.randomPositionInSector(true);
-            this._rocks.push(rock);
-            this.addChild(rock);
-        }
+    private createWorldBounds(): void {
+        this._worldBounds = new Rectangle(this.WORLD_SIZE, this.WORLD_SIZE);
+        this._worldBounds.color = "rgba(230,72,46,0.25)";
+        this._worldBounds.visible = true;
+        this.addChild(this._worldBounds);
     }
 
     private createSelectionBox():void {
@@ -104,12 +141,29 @@ export default class Sector extends View {
         this.addChild(this._selectionBox);
     }
 
+    private removeDestroyed(list: Array<Positionable>): void {
+        for(let i = list.length - 1; i >= 0; i--)
+        {
+            if(list[i].destroyed === true)
+            {
+                list.splice(i, 1);
+            }
+        }
+    }
+
     private randomPositionInSector(includeRotation: boolean = false): Position {
         return new Position(
-            MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE),
-            MathUtil.randomInRange(-this.WORLD_SIZE, this.WORLD_SIZE),
+            MathUtil.randomInRange(-this.WORLD_SIZE / 2, this.WORLD_SIZE / 2),
+            MathUtil.randomInRange(-this.WORLD_SIZE / 2, this.WORLD_SIZE / 2),
             MathUtil.randomInRange(0, Math.PI * 2)
         );
+    }
+
+    private doAddRocks(): void {
+        while(this._rocks.length < this.NUM_ROCKS) {
+            let rockSize = Math.random() < 0.5 ? RockSize.Small : RockSize.Medium;
+            this.requestRock(this.randomPositionInSector(true), rockSize);
+        }
     }
 
     private doInput(): void {
@@ -120,8 +174,8 @@ export default class Sector extends View {
 
         if(input.buttonDown(Mouse.Middle))
         {
-            cam.velocity.x = input.cursor.changeX * this.CAM_MOVE;
-            cam.velocity.y = input.cursor.changeY * this.CAM_MOVE;
+            cam.velocity.x -= input.cursor.changeX * this.CAM_MOVE;
+            cam.velocity.y -= input.cursor.changeY * this.CAM_MOVE;
         }
 
         if(input.buttonDown(Mouse.Right)) {
@@ -131,10 +185,10 @@ export default class Sector extends View {
                 let ship = this._ships[i];
                 if(ship.selected) {
                     if(target === null) {
-                        ship.moveTarget = new Position(input.cursor.worldX, input.cursor.worldY);
+                        ship.target = new Position(input.cursor.worldX, input.cursor.worldY);
                     }
                     else {
-                        ship.attackTarget = target;
+                        ship.target = target;
                     }
                 }
             }
@@ -181,12 +235,46 @@ export default class Sector extends View {
     }
 
     private doCollisions(): void {
+        // ship vs ship
         for(let i = this._ships.length - 1; i >= 0; i--) {
             let ship1 = this._ships[i];
+
+            // test ship vs the rest of ships
             for(let j = i; j >= 0; j--) {
                 let ship2 = this._ships[j];
 
-                ship1.collision.collideWith(ship2.collision, RepositionType.Bounce, 0.5, 0.5, 0.5);
+                if(ship1 !== ship2) {
+                    ship1.collision.collideWith(ship2.collision, RepositionType.Bounce, 0.5, 0.5, 0.5);
+                }
+                
+            }
+        }
+
+        // shots vs all
+        for(let i = this._shots.length - 1; i >= 0; i--) {
+            let shot = this._shots[i];
+
+            // shots vs asteroids
+            for(let j = this._rocks.length - 1; j >= 0; j--) {
+                let rock = this._rocks[j];
+
+                if(shot.collision.collideWith(rock.collision, RepositionType.Bounce, 0.1, 0.9, 0.1))
+                {
+                    rock.applyDamage(Laser.DAMAGE);
+                    shot.destroy();
+                }
+            }
+        }
+
+        // rocks vs rocks
+        for(let i = this._rocks.length - 1; i >= 0; i--) {
+            let rock1 = this._rocks[i];
+            for(let j = this._rocks.length - 1; j >= 0; j--) {
+                let rock2 = this._rocks[j];
+
+                if(rock1 !== rock2) {
+                    rock1.collision.collideWith(rock2.collision, RepositionType.Bounce, 0.5, 0.5, 1);
+                }
             }
         }
     }
